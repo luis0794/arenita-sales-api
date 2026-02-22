@@ -35,6 +35,12 @@ dependencies {
     // Swagger
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0")
 
+    // OpenTelemetry - Metrics, Traces, Logs
+    implementation("io.opentelemetry:opentelemetry-api:1.33.0")
+    implementation("io.opentelemetry.instrumentation:opentelemetry-spring-boot-starter:1.33.0")
+    implementation("io.opentelemetry.exporter:opentelemetry-exporter-otlp:1.33.0")
+    implementation("io.opentelemetry.exporter:opentelemetry-exporter-prometheus:1.33.0-alpha")
+
     runtimeOnly("org.postgresql:postgresql")
     runtimeOnly("com.h2database:h2")
 
@@ -49,12 +55,3 @@ tasks.withType<KotlinCompile> {
 }
 
 tasks.withType<Test> { useJUnitPlatform() }
-// OTEL Dependencies
-dependencies {
-    implementation("io.opentelemetry:opentelemetry-api:1.33.0")
-    implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom:2.0.0-alpha")
-    implementation("io.opentelemetry.instrumentation:opentelemetry-spring-boot-starter:2.0.0-alpha")
-    implementation("io.opentelemetry.exporter:opentelemetry-exporter-otlp:1.33.0")
-    implementation("io.opentelemetry:opentelemetry-exporter-prometheus:1.33.0-alpha")
-    implementation("io.opentelemetry.semconv:opentelemetry-semconv:1.33.0-alpha")
-}
