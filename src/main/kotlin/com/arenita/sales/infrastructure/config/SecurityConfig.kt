@@ -35,10 +35,10 @@ class SecurityConfig {
                 it.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/actuator/**").permitAll()
                 it.requestMatchers("/api/v1/mcp/**").permitAll() // MCP open for AI agents
                 it.requestMatchers("/api/v1/webhook/**").permitAll()
-                it.requestMatchers("/api/v1/**").authenticated()
+                // TODO: JWT auth — temporarily permitAll for all API endpoints
+                it.requestMatchers("/api/v1/**").permitAll()
                 it.anyRequest().permitAll()
             }
-            .httpBasic { }
         return http.build()
     }
 
