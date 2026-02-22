@@ -35,10 +35,11 @@ class SecurityConfig {
                 it.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/actuator/**").permitAll()
                 it.requestMatchers("/api/v1/mcp/**").permitAll() // MCP open for AI agents
                 it.requestMatchers("/api/v1/webhook/**").permitAll()
-                it.requestMatchers("/api/v1/**").authenticated()
+                // TODO: Add JWT filter and re-enable authenticated() for write endpoints
+                // For now, allow all API access (mobile app + bot need it)
+                it.requestMatchers("/api/v1/**").permitAll()
                 it.anyRequest().permitAll()
             }
-            .httpBasic { }
         return http.build()
     }
 
