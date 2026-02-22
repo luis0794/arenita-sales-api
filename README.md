@@ -60,48 +60,64 @@ Backend del sistema de gestión de proformas y ventas para equipos comerciales. 
 
 ## Flujo de uso
 
-### Desde app móvil (mínima data):
-```
-1. Asesor sube PDF → POST /proformas/upload + metadata mínima
-2. Backend parsea PDF automáticamente
-3. Se registra proforma con todos los datos
-```
+### Flujos de ingreso
 
-### Desde Telegram (vía Arenita bot):
-```
-1. Asesor envía PDF al bot
-2. Bot extrae datos y envía a API
-3. Bot pregunta datos faltantes
-4. Proforma registrada
-```
+```mermaid
+flowchart LR
+    subgraph Mobile["📱 App Móvil"]
+        A1[Subir PDF] --> A2[+ datos mínimos]
+    end
+    subgraph Telegram["🐱 Telegram"]
+        B1[Enviar PDF] --> B2[Arenita extrae datos]
+    end
+    subgraph External["🏢 Sistema Externo"]
+        C1[Webhook / MCP]
+    end
 
-### Desde sistema externo (API/Webhook/MCP):
-```
-1. ERP envía evento → POST /webhook/inbound
-2. O usa MCP → POST /mcp/call
-3. Sistema procesa y registra
+    A2 --> API[arenita-sales-api]
+    B2 --> API
+    C1 --> API
+    API --> PDF[📄 PDF Parser]
+    PDF --> DB[(PostgreSQL)]
+    API --> DB
+
+    style API fill:#6B4EAE,color:#fff
 ```
 
 ## Estados de proformas
 
-### Reactivos / Equipos / Repuestos:
-```
-Proforma generada
-  └─ Enviada al cliente a la espera de aprobación
-  └─ Rechazada o sin respuesta
-Proforma aprobada
-  └─ Espera de confirmación de despacho
-Pedido entregado
+### Reactivos / Equipos / Repuestos
+
+```mermaid
+stateDiagram-v2
+    [*] --> Generada
+    state Generada {
+        [*] --> EnviadaEspera: Enviada al cliente<br/>a la espera de aprobación
+        EnviadaEspera --> Rechazada: Rechazada o sin respuesta
+    }
+    Generada --> Aprobada: Cliente aprueba
+    state Aprobada {
+        [*] --> EsperaDespacho: Espera de confirmación<br/>de despacho
+    }
+    Aprobada --> Entregado: ✅ Pedido entregado
+    Entregado --> [*]
 ```
 
-### Mantenimiento:
-```
-Proforma generada
-  └─ Enviada al cliente a la espera de aprobación
-  └─ Rechazada o sin respuesta
-Proforma aprobada
-  └─ Mantenimiento agendado
-Mantenimiento realizado
+### Mantenimiento
+
+```mermaid
+stateDiagram-v2
+    [*] --> Generada
+    state Generada {
+        [*] --> EnviadaEspera: Enviada al cliente<br/>a la espera de aprobación
+        EnviadaEspera --> Rechazada: Rechazada o sin respuesta
+    }
+    Generada --> Aprobada: Cliente aprueba
+    state Aprobada {
+        [*] --> Agendado: Mantenimiento agendado
+    }
+    Aprobada --> Realizado: ✅ Mantenimiento realizado
+    Realizado --> [*]
 ```
 
 ## Licencia
