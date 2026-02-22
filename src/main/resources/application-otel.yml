@@ -1,0 +1,30 @@
+# OpenTelemetry Configuration
+otel:
+  sdk:
+    disabled: false
+  exporter:
+    otlp:
+      endpoint: http://localhost:4317
+  metrics:
+    export:
+      interval: 30000
+  traces:
+    sampler: always_on
+  resource:
+    attributes:
+      service.name: arenita-sales-api
+      service.version: 0.1.0
+      deployment.environment: dev
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus,health,info
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
