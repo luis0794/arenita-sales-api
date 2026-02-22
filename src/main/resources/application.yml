@@ -1,0 +1,51 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: arenita-sales-api
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+
+jwt:
+  secret: ${JWT_SECRET:arenita-sales-dev-secret-256bit-key-change-in-prod}
+  expiration-ms: 86400000
+
+mcp:
+  enabled: true
+  server-name: arenita-sales
+  version: 1.0.0
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+  datasource:
+    url: jdbc:h2:mem:arenita_sales;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  h2:
+    console:
+      enabled: true
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    url: jdbc:postgresql://localhost:5434/arenita_sales
+    driver-class-name: org.postgresql.Driver
+    username: arenita
+    password: arenita_secret
+  jpa:
+    hibernate:
+      ddl-auto: validate
