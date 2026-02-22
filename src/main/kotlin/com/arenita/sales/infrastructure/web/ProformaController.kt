@@ -31,6 +31,7 @@ class ProformaController(
         @RequestParam("file") file: MultipartFile,
         @RequestParam companyId: String,
         @RequestParam(required = false) salesAgentId: String?,
+        @RequestParam(required = false) vendorName: String?,
         @RequestParam(required = false) requestDate: LocalDate?,
         @RequestParam(required = false) requestChannel: String?,
         @RequestParam(required = false) proformaType: String?,
@@ -41,6 +42,7 @@ class ProformaController(
         val parsed = pdfParser.parsePdf(file, companyId)
         val enriched = parsed.copy(
             salesAgentId = salesAgentId ?: parsed.salesAgentId,
+            vendorName = vendorName ?: parsed.vendorName,
             requestDate = requestDate ?: parsed.requestDate,
             requestChannel = requestChannel ?: parsed.requestChannel,
             proformaType = proformaType ?: parsed.proformaType,

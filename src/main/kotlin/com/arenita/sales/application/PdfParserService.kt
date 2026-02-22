@@ -19,6 +19,15 @@ class PdfParserService {
         DateTimeFormatter.ofPattern("d/M/yyyy"),
         DateTimeFormatter.ofPattern("yyyy-MM-dd")
     )
+    
+    // Ecuador cities to validate city extraction
+    private val ecuadorianCities = setOf(
+        "QUITO", "GUAYAQUIL", "CUENCA", "SANTO DOMINGO", "MANTA", "AMBATO",
+        "PORTOVIEJO", "MACHALA", "LOJA", "RIOBAMBA", "LATACUNGA", "PUYO",
+        "BABAHOYO", "ESMERALDAS", "IBARRA", "TULCAN", "COCA", "DAULE",
+        "DURAN", "SAMBORONDON", "SALINAS", "MONTANITA", "OTAVALO",
+        "ALOAG", "NAPO", "MORONA", "ZAMORA"
+    )
 
     /**
      * Extract raw text from PDF for debugging
@@ -57,11 +66,11 @@ class PdfParserService {
             proformaNumber = extractProformaNumber(text) ?: "UNKNOWN",
             issueDate = extractDate(text, "(?:Fecha\\s*(?:de\\s*)?emisi[oó]n|Fecha)"),
             validUntil = extractDate(text, "(?:V[aá]lida?\\s*hasta|Vigencia)"),
-            vendorName = extractField(text, "(?:VENDEDOR|Vendedor)", "[A-Za-zÀ-ÿ\\s.]+"),
+            vendorName = null, // Vendor name comes from frontend
             clientName = extractClientName(text),
             clientRuc = extractField(text, "(?:C[eé]dula/?[Rr][Uu][Cc]|RUC\\s*(?:Cliente)?)", "[\\d-]+"),
             clientAddress = extractField(text, "(?:Direcci[oó]n|DIRECCION)", "[^\\n]+"),
-            clientCity = extractField(text, "(?:Ciudad|CIUDAD)", "[A-Za-zÀ-ÿ\\s]+"),
+            clientCity = extractCity(text),
             issuerRuc = extractIssuerRuc(text),
             paymentTerms = extractField(text, "(?:Forma\\s*de\\s*pago|FORMA\\s*DE\\s*PAGO|Condici[oó]n)", "[^\\n]+"),
             deliveryDays = extractField(text, "(?:D[ií]as\\s*(?:de\\s*)?entrega|PLAZO)", "\\d+")?.toIntOrNull(),
@@ -255,5 +264,22 @@ class PdfParserService {
             if (date != null) return date
         }
         return null
+    }
+
+    private fun extractCity(text: String): String? {
+        val patterns = listOf(
+            Regex("(?:Ciudad|CIUDAD)[:\\s]+([A-Za-zÀ-ÿ]+)", RegexOption.IGNORE_CASE),
+            Regex("(?:Localidad|LOCALIDAD)[:\\s]+([A-Za-zÀ-ÿ]+)", RegexOption.IGNORE_CASE)
+        )
+        for (p in patterns) {
+            val match = p.find(text)
+            if (match != null) {
+                val rawCity = match.groupValues[1].trim().uppercase()
+                if (ecuadorianCities.contains(rawCity)) {
+                    return rawCity
+                }
+            }
+        }
+        return null // Invalid city, let frontend handle it
     }
 }
