@@ -51,6 +51,23 @@ class ProformaController(
         return proformaService.createProforma(enriched)
     }
 
+    @PostMapping("/upload/debug", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    @Operation(summary = "Debug: extract text from PDF without saving")
+    fun debugPdf(@RequestParam("file") file: MultipartFile): Map<String, Any> {
+        val text = pdfParser.extractText(file)
+        val parsed = pdfParser.parsePdf(file, "00000000-0000-0000-0000-000000000000")
+        return mapOf(
+            "rawText" to text,
+            "textLength" to text.length,
+            "parsedNumber" to (parsed.proformaNumber),
+            "parsedClient" to (parsed.clientName ?: "null"),
+            "parsedItemCount" to parsed.items.size,
+            "parsedItems" to parsed.items.map {
+                mapOf("qty" to it.quantity, "desc" to it.description, "unit" to it.unitPrice, "total" to it.totalPrice)
+            }
+        )
+    }
+
     @GetMapping("/{id}")
     @Operation(summary = "Get proforma by ID")
     fun get(@PathVariable id: UUID) = proformaService.getProforma(id)
@@ -73,9 +90,30 @@ class ProformaController(
     fun updateStatus(@PathVariable id: UUID, @Valid @RequestBody req: UpdateStatusRequest) =
         proformaService.updateStatus(id, req)
 
-    @PostMapping("/{id}/version")
+    @PostMapping("/{id}/version", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     @ResponseStatus(HttpStatus.CREATED)
-    @Operation(summary = "Create new version of proforma")
-    fun newVersion(@PathVariable id: UUID, @Valid @RequestBody req: CreateProformaRequest) =
+    @Operation(summary = "Create new version of proforma from PDF upload")
+    fun newVersion(
+        @PathVariable id: UUID,
+        @RequestParam("file") file: MultipartFile,
+        @RequestParam(required = false) requestedBy: String?
+    ): ProformaResponse {
+        val original = proformaService.getProforma(id)
+        val parsed = pdfParser.parsePdf(file, original.companyId.toString())
+        val enriched = parsed.copy(
+            proformaType = original.proformaType,
+            requestChannel = original.requestChannel,
+            observations = buildString {
+                requestedBy?.let { append("Modificación solicitada por: $it. ") }
+                parsed.observations?.let { append(it) }
+            }.ifBlank { null }
+        )
+        return proformaService.createNewVersion(id, enriched)
+    }
+
+    @PostMapping("/{id}/version/json")
+    @ResponseStatus(HttpStatus.CREATED)
+    @Operation(summary = "Create new version of proforma (JSON body)")
+    fun newVersionJson(@PathVariable id: UUID, @Valid @RequestBody req: CreateProformaRequest) =
         proformaService.createNewVersion(id, req)
 }
