@@ -24,6 +24,17 @@ class ProformaService(
     fun createProforma(req: CreateProformaRequest): ProformaResponse {
         val companyId = UUID.fromString(req.companyId)
 
+        // Check for duplicate proforma number (same company, same version=1)
+        if (req.proformaNumber != "UNKNOWN") {
+            val existing = proformaRepo.findByProformaNumberAndCompanyId(req.proformaNumber, companyId)
+            if (existing.isNotEmpty()) {
+                log.warn("Proforma ${req.proformaNumber} already exists for company $companyId (${existing.size} versions)")
+                // Return existing latest version instead of creating duplicate
+                val latest = existing.maxByOrNull { it.version }!!
+                return toResponse(latest, itemRepo.findByProformaId(latest.id!!))
+            }
+        }
+
         // Find or create client
         var clientId: UUID? = null
         if (req.clientRuc != null) {
