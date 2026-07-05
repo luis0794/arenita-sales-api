@@ -1,0 +1,32 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: waviewer
+      POSTGRES_USER: waviewer
+      POSTGRES_PASSWORD: waviewer_secret
+    ports:
+      - "5435:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  waviewer-api:
+    build: .
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/waviewer
+      SPRING_DATASOURCE_USERNAME: waviewer
+      SPRING_DATASOURCE_PASSWORD: waviewer_secret
+      META_VERIFY_TOKEN: ${META_VERIFY_TOKEN}
+      META_APP_SECRET: ${META_APP_SECRET}
+      META_ACCESS_TOKEN: ${META_ACCESS_TOKEN}
+      META_PHONE_NUMBER_ID: ${META_PHONE_NUMBER_ID}
+      VIEWER_API_KEY: ${VIEWER_API_KEY}
+    depends_on:
+      - postgres
+
+volumes:
+  pgdata:

@@ -1,0 +1,7 @@
+build/
+.gradle/
+# el .gitignore raíz ignora *.jar; el wrapper sí debe versionarse
+!gradle/wrapper/gradle-wrapper.jar
+*.iml
+.idea/
+.DS_Store

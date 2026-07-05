@@ -1,0 +1,44 @@
+server:
+  port: 8084
+
+spring:
+  application:
+    name: waviewer-api
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+
+meta:
+  verify-token: ${META_VERIFY_TOKEN:dev-verify-token}
+  app-secret: ${META_APP_SECRET:dev-app-secret}
+  access-token: ${META_ACCESS_TOKEN:dev-access-token}
+  phone-number-id: ${META_PHONE_NUMBER_ID:000000000000000}
+
+viewer:
+  api-key: ${VIEWER_API_KEY:dev-api-key-change-me}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+  datasource:
+    url: jdbc:h2:mem:waviewer;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  h2:
+    console:
+      enabled: true
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/waviewer}
+    driver-class-name: org.postgresql.Driver
+    username: ${SPRING_DATASOURCE_USERNAME:waviewer}
+    password: ${SPRING_DATASOURCE_PASSWORD:waviewer_secret}
